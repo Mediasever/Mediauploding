@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Media Library</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        /* Search Bar */
+        #searchBar {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin: 20px auto;
+            display: block;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            outline: none;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        /* Filter Buttons */
+        .filter-buttons {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .filter-buttons button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            color: white;
+        }
+        .filter-buttons button:hover {
+            background-color: #3e8e41;
+        }
+        .btn-all { background-color: #007bff; }
+        .btn-image { background-color: #4CAF50; }
+        .btn-video { background-color: #f39c12; }
+        .btn-audio { background-color: #9b59b6; }
+
+        /* Media Container */
+        .media-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .media-item {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .media-item:hover {
+            transform: scale(1.05);
+        }
+        .media-item img, .media-item video, .media-item audio {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .media-item p {
+            font-weight: bold;
+            margin: 15px 0;
+            word-break: break-all;
+            font-size: 1rem;
+        }
+        .download-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 30px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .download-button:hover {
+            background-color: #45a049;
+        }
+        .no-media {
+            font-size: 1.2rem;
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Modern Media Library</h1>
+
+    <!-- Search Bar -->
+    <input type="text" id="searchBar" placeholder="Search media...">
+
+    <!-- Filter Buttons -->
+    <div class="filter-buttons">
+        <button class="btn-all" onclick="filterMedia('all')">All</button>
+        <button class="btn-image" onclick="filterMedia('image')">Images</button>
+        <button class="btn-video" onclick="filterMedia('video')">Videos</button>
+        <button class="btn-audio" onclick="filterMedia('audio')">Music</button>
+    </div>
+
+    <!-- Media Container -->
+    <div class="container">
+        <div class="media-container" id="mediaContainer">
+            <!-- Media items will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Retrieve media list from localStorage or initialize as empty array
+        let mediaList = JSON.parse(localStorage.getItem('mediaList')) || [];
+
+        /**
+         * Function to display media items
+         * @param {Array} items - Array of media objects to display
+         */
+        function displayMedia(items) {
+            const container = document.getElementById('mediaContainer');
+            container.innerHTML = ''; // Clear existing content
+
+            if (items.length === 0) {
+                container.innerHTML = '<p class="no-media">No media found.</p>';
+                return;
+            }
+
+            items.forEach(item => {
+                const mediaDiv = document.createElement('div');
+                mediaDiv.className = 'media-item';
+
+                // Display media name
+                const title = document.createElement('p');
+                title.textContent = item.name;
+                mediaDiv.appendChild(title);
+
+                // Display media based on its type
+                if (item.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = item.data;
+                    img.alt = item.name;
+                    mediaDiv.appendChild(img);
+                } else if (item.type === 'video') {
+                    const video = document.createElement('video');
+                    video.controls = true;
+                    video.src = item.data;
+                    mediaDiv.appendChild(video);
+                } else if (item.type === 'audio') {
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = item.data;
+                    mediaDiv.appendChild(audio);
+                }
+
+                // Create Download Button
+                const downloadButton = document.createElement('button');
+                downloadButton.textContent = 'Download';
+                downloadButton.className = 'download-button';
+
+                // Set up the download functionality
+                downloadButton.onclick = function() {
+                    downloadMedia(item);
+                };
+
+                mediaDiv.appendChild(downloadButton);
+
+                container.appendChild(mediaDiv);
+            });
+        }
+
+        /**
+         * Function to handle media download
+         * @param {Object} item - The media object to download
+         */
+        function downloadMedia(item) {
+            // Create a temporary anchor element
+            const a = document.createElement('a');
+            a.href = item.data;
+            a.download = item.name;
+
+            // Append to the body
+            document.body.appendChild(a);
+
+            // Trigger the download
+            a.click();
+
+            // Remove the anchor element
+            document.body.removeChild(a);
+        }
+
+        /**
+         * Function to filter media by type
+         * @param {string} type - The type to filter by ('all', 'image', 'video', 'audio')
+         */
+        function filterMedia(type) {
+            let filtered = mediaList;
+            if (type !== 'all') {
+                filtered = mediaList.filter(item => item.type === type);
+            }
+            displayMedia(filtered);
+        }
+
+        /**
+         * Function to search media by name
+         * @param {string} query - The search query
+         */
+        function searchMedia(query) {
+            const filtered = mediaList.filter(item => item.name.toLowerCase().includes(query));
+            displayMedia(filtered);
+        }
+
+        /**
+         * Event listener for the search bar to filter media in real-time
+         */
+        document.getElementById('searchBar').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            searchMedia(query);
+        });
+
+        // Initial display of all media items on page load
+        displayMedia(mediaList);
+    </script>
+
+</body>
+</html>
